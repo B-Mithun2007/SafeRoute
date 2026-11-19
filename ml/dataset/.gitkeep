@@ -1,0 +1,2 @@
+# Place your raw or processed datasets (CSV, JSON, GeoJSON) in this directory.
+# Large dataset files (*.csv, *.parquet, *.json) are ignored by Git via the root .gitignore.
