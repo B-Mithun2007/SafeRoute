@@ -11,6 +11,7 @@ Run the server from the backend/ directory:
     uvicorn app.main:app --reload
 """
 
+import os
 from datetime import datetime, timezone
 from typing import Any, Dict
 
@@ -54,36 +55,42 @@ app = FastAPI(
 )
 
 # ---------------------------------------------------------------------------
-# CORS Middleware
+# CORS — Allowed Origins
 # ---------------------------------------------------------------------------
-# Cross-Origin Resource Sharing (CORS) allows web/mobile clients served from
-# a different host or port to call this API without browser security errors.
+# Explicit localhost origins for Expo Web, Metro bundler, and iOS simulator.
+# Physical device support: add your PC's LAN IP to CORS_EXTRA_ORIGINS in .env
+# Example:  CORS_EXTRA_ORIGINS=http://192.168.1.100:8000
 #
-# Origins listed below cover common local development setups:
-#   - React / Vite dev server   : localhost:3000
-#   - Expo Metro bundler        : localhost:8081
-#   - Expo Web (classic CLI)    : localhost:19000 / 19006
-#
-# Note: "*" (wildcard) is included for hackathon convenience when physical
-# Android/iOS devices on the same network need direct access.  Remove it in
-# production and replace with the deployed frontend domain.
-origins = [
+# IMPORTANT: Do NOT mix allow_origins=["*"] with allow_credentials=True.
+# The CORS spec forbids it; browsers will refuse credentialed cross-origin
+# requests when the server returns Access-Control-Allow-Origin: *.
+# ---------------------------------------------------------------------------
+_base_origins = [
     "http://localhost",
+    "http://localhost:8000",
     "http://localhost:3000",
-    "http://localhost:8081",   # Expo Metro bundler
-    "http://localhost:19000",  # Expo CLI classic
-    "http://localhost:19006",  # Expo Web preview
+    "http://localhost:8081",    # Expo Metro bundler
+    "http://localhost:8083",    # Expo Metro alternate
+    "http://localhost:19000",   # Expo CLI classic
+    "http://localhost:19006",   # Expo Web preview
+    "http://127.0.0.1:8000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8081",
-    "*",                       # Hackathon-only: allow all origins
+    "http://127.0.0.1:19006",
 ]
+
+# Read optional extra origins from environment (physical device LAN IPs, etc.)
+_extra = os.getenv("CORS_EXTRA_ORIGINS", "")
+_extra_origins = [o.strip() for o in _extra.split(",") if o.strip()]
+
+origins = _base_origins + _extra_origins
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],   # GET, POST, PUT, DELETE, OPTIONS, PATCH
-    allow_headers=["*"],   # Authorization, Content-Type, etc.
+    allow_credentials=True,       # Needed for Authorization: Bearer <token>
+    allow_methods=["*"],          # GET, POST, PUT, DELETE, OPTIONS, PATCH
+    allow_headers=["*"],          # Authorization, Content-Type, Accept, etc.
 )
 
 # ---------------------------------------------------------------------------
