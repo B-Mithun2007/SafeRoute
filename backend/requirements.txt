@@ -1,23 +1,52 @@
 # ==============================================================================
 # SafeRoute-AI Backend Dependencies
 # ==============================================================================
+# Python 3.10+ required.
+# Install from the backend/ directory:
+#
+#   pip install -r requirements.txt
+#
+# ==============================================================================
 
+# ------------------------------------------------------------------------------
 # Web Framework & ASGI Server
+# ------------------------------------------------------------------------------
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
 
-# Data Validation & Settings
+# ------------------------------------------------------------------------------
+# Data Validation & Configuration Management
+# ------------------------------------------------------------------------------
 pydantic>=2.10.0
-pydantic-settings>=2.6.0
+pydantic-settings>=2.6.0        # Loads settings from .env via BaseSettings
 
-# Database & ORM
-sqlalchemy>=2.0.36
-psycopg[binary]>=3.2.0
+# ------------------------------------------------------------------------------
+# Database, ORM & Migrations
+# ------------------------------------------------------------------------------
+sqlalchemy>=2.0.36              # ORM — 2.x API required for psycopg3 dialect
+psycopg[binary]>=3.2.0          # PostgreSQL driver (psycopg3); DO NOT add psycopg2
+geoalchemy2>=0.15.0             # PostGIS geometry column types for SQLAlchemy
+alembic>=1.13.0                 # Database schema migrations
 
-# Data Science & Machine Learning Inference
+# ------------------------------------------------------------------------------
+# HTTP Client — Async external service calls (OSRM, OpenStreetMap Nominatim)
+# ------------------------------------------------------------------------------
+httpx>=0.27.0                   # Async-capable HTTP client; replaces requests
+
+# ------------------------------------------------------------------------------
+# Generative AI — Google Gemini API (backend-only, never exposed to frontend)
+# ------------------------------------------------------------------------------
+google-genai>=1.0.0             # Official unified Google GenAI SDK (Gemini 2.0+)
+
+# ------------------------------------------------------------------------------
+# Data Science & Machine Learning Inference (CART Decision Tree via scikit-learn)
+# ------------------------------------------------------------------------------
 pandas>=2.2.0
 numpy>=2.0.0
-scikit-learn>=1.5.0
+scikit-learn>=1.5.0             # Provides DecisionTreeClassifier / Regressor
+joblib>=1.4.0                   # Model serialization (.joblib artifacts)
 
+# ------------------------------------------------------------------------------
 # Environment Management
-python-dotenv>=1.0.1
+# ------------------------------------------------------------------------------
+python-dotenv>=1.0.1            # Loads .env files into os.environ
