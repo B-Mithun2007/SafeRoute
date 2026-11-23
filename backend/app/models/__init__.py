@@ -1,4 +1,17 @@
-"""Data models for SafeRoute-AI.
+"""Models package for SafeRoute-AI."""
 
-Houses both SQLAlchemy ORM database models and Pydantic request/response schemas.
-"""
+from app.models.user import User
+from app.models.schemas import (
+    UserRegisterRequest,
+    UserLoginRequest,
+    UserResponse,
+    AuthResponse,
+)
+
+__all__ = [
+    "User",
+    "UserRegisterRequest",
+    "UserLoginRequest",
+    "UserResponse",
+    "AuthResponse",
+]

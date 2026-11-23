@@ -93,3 +93,9 @@ ml/models/*.onnx
 logs/
 tmp/
 scratch/
+
+# Local SQLite database
+backend/saferoute.db
+*.db
+*.sqlite
+*.sqlite3

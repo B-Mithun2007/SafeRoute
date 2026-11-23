@@ -2,8 +2,10 @@
 Main entry point for the SafeRoute-AI FastAPI backend application.
 
 This module:
+  - Loads environment variables from backend/.env on startup.
   - Creates and configures the FastAPI application instance.
   - Sets up CORS middleware for local frontend/mobile development.
+  - Initializes database tables (SQLite in local dev).
   - Registers all API route modules (routers).
   - Exposes the root (/) and delegates /api/* routes to dedicated routers.
 
@@ -12,14 +14,35 @@ Run the server from the backend/ directory:
 """
 
 import os
-from datetime import datetime, timezone
+from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any, Dict
+
+from dotenv import load_dotenv
+
+# Ensure backend/.env is automatically loaded before configuring app services
+# override=False preserves any variables already set in the operating system environment
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+ENV_PATH = BACKEND_DIR / ".env"
+load_dotenv(dotenv_path=ENV_PATH, override=False)
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 
-# Import the health router defined in app/routes/health.py
-from app.routes import health_router
+# Import database initialization
+from app.database import init_db
+
+# Import route modules
+from app.routes import health_router, auth_router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan context manager for startup and shutdown events."""
+    # Initialize database tables on startup
+    init_db()
+    yield
+
 
 # ---------------------------------------------------------------------------
 # FastAPI Application Instance
@@ -33,15 +56,12 @@ app = FastAPI(
         "personalized travel routes by combining **road safety data**, "
         "**time-of-day factors**, **community incident reports**, and "
         "**ML-based risk scoring**.\n\n"
-        "### Core Capabilities (Hackathon Roadmap)\n"
+        "### Core Capabilities\n"
+        "- 🔐 **Authentication** — User registration and login with secure JWTs.\n"
         "- 🛡️ **Route Safety Evaluation** — Compare and score candidate routes.\n"
         "- 📍 **Zone Safety Scoring** — Query safety score for any coordinate.\n"
         "- 📢 **Incident Reporting** — Accept and serve community hazard reports.\n"
-        "- 🤖 **ML Risk Inference** — Predict danger levels via trained models.\n\n"
-        "### Current Phase\n"
-        "**Phase 1 — Foundation**: Core application skeleton, CORS, health checks, "
-        "and routing infrastructure are live. ML and database integration follow in "
-        "subsequent phases."
+        "- 🤖 **ML Risk Inference** — Predict danger levels via trained models.\n"
     ),
     version="0.1.0",
     docs_url="/docs",    # Swagger UI
@@ -52,6 +72,7 @@ app = FastAPI(
     license_info={
         "name": "MIT",
     },
+    lifespan=lifespan,
 )
 
 # ---------------------------------------------------------------------------
@@ -96,16 +117,11 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Register Route Modules (Routers)
 # ---------------------------------------------------------------------------
-# Each router file in app/routes/ defines an APIRouter.
-# We register them here so their endpoints appear in the application.
-#
-# health_router handles:  GET /api/health
+# Health checks: GET /api/health
 app.include_router(health_router)
 
-# Future routers to be added in later phases, for example:
-#   from app.routes import routes_router, reports_router
-#   app.include_router(routes_router)
-#   app.include_router(reports_router)
+# Authentication: POST /api/auth/register, POST /api/auth/login
+app.include_router(auth_router)
 
 
 # ---------------------------------------------------------------------------

@@ -1,4 +1,5 @@
-"""Database configuration and session management for SafeRoute-AI.
+"""Database package for SafeRoute-AI."""
 
-Contains database connection engine setup, session factories, and base declarations.
-"""
+from app.database.session import Base, engine, get_db, init_db, SessionLocal
+
+__all__ = ["Base", "engine", "get_db", "init_db", "SessionLocal"]

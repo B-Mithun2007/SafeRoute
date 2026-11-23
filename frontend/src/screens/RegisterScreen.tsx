@@ -1,6 +1,6 @@
 /**
  * RegisterScreen
- * User registration with name, email, password confirmation, and input validation.
+ * User registration with name, email, password confirmation, phone number, and input validation.
  */
 import React, { useState } from 'react';
 import {
@@ -38,7 +38,7 @@ export const RegisterScreen = ({ navigation }: any) => {
 
     if (!email.trim()) {
       newErrors.email = 'Email address is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
       newErrors.email = 'Enter a valid email address';
     }
 
@@ -57,16 +57,39 @@ export const RegisterScreen = ({ navigation }: any) => {
   };
 
   const handleRegister = async () => {
+    // Guard against multiple submissions while request is in flight
+    if (isLoading) return;
     if (!validate()) return;
 
     setIsLoading(true);
     setErrors({});
     try {
       await register(name.trim(), email.trim(), password, phone.trim());
-      navigation.replace('Main');
+      // Navigate to Home/Main tab stack on successful registration
+      if (navigation.getParent()) {
+        navigation.getParent().navigate('Main');
+      } else {
+        navigation.navigate('Main');
+      }
     } catch (err: any) {
+      let errorMessage = 'Registration failed. Please try again.';
+
+      if (err?.status === 409) {
+        errorMessage = err.message || 'An account with this email already exists. Please sign in instead.';
+      } else if (err?.status === 401) {
+        errorMessage = 'Unauthorized. Please check your credentials.';
+      } else if (err?.status === 400 || err?.status === 422) {
+        errorMessage = err.message || 'Invalid registration details. Please verify your input.';
+      } else if (err?.status === 404) {
+        errorMessage = 'Authentication service endpoint not found (404). Please ensure the backend is running.';
+      } else if (err?.isNetworkError) {
+        errorMessage = 'Unable to reach SafeRoute backend. Please check your network connection or server status.';
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+
       setErrors({
-        general: err.message || 'Registration failed. Please try again.',
+        general: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -161,6 +184,7 @@ export const RegisterScreen = ({ navigation }: any) => {
               title="Create Account"
               onPress={handleRegister}
               isLoading={isLoading}
+              disabled={isLoading}
               size="large"
               style={styles.submitButton}
             />

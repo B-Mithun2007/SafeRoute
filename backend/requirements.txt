@@ -21,10 +21,16 @@ pydantic>=2.10.0
 pydantic-settings>=2.6.0        # Loads settings from .env via BaseSettings
 
 # ------------------------------------------------------------------------------
+# Authentication & Security
+# ------------------------------------------------------------------------------
+bcrypt>=4.0.0                   # Secure password hashing
+pyjwt>=2.8.0                    # JSON Web Token creation and verification
+
+# ------------------------------------------------------------------------------
 # Database, ORM & Migrations
 # ------------------------------------------------------------------------------
-sqlalchemy>=2.0.36              # ORM — 2.x API required for psycopg3 dialect
-psycopg[binary]>=3.2.0          # PostgreSQL driver (psycopg3); DO NOT add psycopg2
+sqlalchemy>=2.0.36              # ORM — 2.x API
+psycopg[binary]>=3.2.0          # PostgreSQL driver (for future production deployment)
 geoalchemy2>=0.15.0             # PostGIS geometry column types for SQLAlchemy
 alembic>=1.13.0                 # Database schema migrations
 

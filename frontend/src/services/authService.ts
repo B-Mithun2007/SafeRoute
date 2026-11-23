@@ -1,7 +1,7 @@
 /**
  * Authentication Service
  * Manages user registration, login, session tokens, and local cache.
- * Implements transparent mock adapters when backend authentication is not available.
+ * Connects directly to backend /api/auth endpoints using the shared apiClient.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiClient } from './api';
@@ -18,11 +18,12 @@ export const AuthService = {
     }
 
     try {
+      // Send both full_name and phone_number matching the backend schema
       const response = await apiClient.post('/api/auth/register', {
-        name,
+        full_name: name,
         email,
         password,
-        phone,
+        phone_number: phone || undefined,
       });
       const data: AuthResponse = response.data;
       await this._saveSession(data);
@@ -104,8 +105,9 @@ export const AuthService = {
   },
 
   async _saveSession(data: AuthResponse): Promise<void> {
+    const token = data.token || (data as any).access_token;
     await Promise.all([
-      AsyncStorage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, data.token),
+      AsyncStorage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, token),
       AsyncStorage.setItem(Config.STORAGE_KEYS.USER_PROFILE, JSON.stringify(data.user)),
     ]);
   },

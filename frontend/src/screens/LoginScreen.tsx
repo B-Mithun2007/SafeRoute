@@ -31,7 +31,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
     if (!email.trim()) {
       newErrors.email = 'Email address is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
       newErrors.email = 'Enter a valid email address';
     }
 
@@ -46,16 +46,39 @@ export const LoginScreen = ({ navigation }: any) => {
   };
 
   const handleLogin = async () => {
+    // Guard against multiple submissions while request is in flight
+    if (isLoading) return;
     if (!validate()) return;
 
     setIsLoading(true);
     setErrors({});
     try {
       await login(email.trim(), password);
-      navigation.replace('Main');
+      // Navigate to Home/Main tab stack on successful login
+      if (navigation.getParent()) {
+        navigation.getParent().navigate('Main');
+      } else {
+        navigation.navigate('Main');
+      }
     } catch (err: any) {
+      let errorMessage = 'Login failed. Please verify your credentials or network connection.';
+
+      if (err?.status === 401) {
+        errorMessage = err.message || 'Incorrect email or password. Please verify your credentials.';
+      } else if (err?.status === 404) {
+        errorMessage = 'Authentication service endpoint not found (404). Please ensure the backend is running.';
+      } else if (err?.status === 400 || err?.status === 422) {
+        errorMessage = err.message || 'Invalid login details. Please check your email and password format.';
+      } else if (err?.status === 403) {
+        errorMessage = err.message || 'Account is inactive. Please contact support.';
+      } else if (err?.isNetworkError) {
+        errorMessage = 'Unable to reach SafeRoute backend. Please check your network connection or server status.';
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+
       setErrors({
-        general: err.message || 'Login failed. Please verify your credentials or network connection.',
+        general: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -125,6 +148,7 @@ export const LoginScreen = ({ navigation }: any) => {
               title="Sign In"
               onPress={handleLogin}
               isLoading={isLoading}
+              disabled={isLoading}
               size="large"
               style={styles.submitButton}
             />
