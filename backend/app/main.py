@@ -5,7 +5,7 @@ This module:
   - Loads environment variables from backend/.env on startup.
   - Creates and configures the FastAPI application instance.
   - Sets up CORS middleware for local frontend/mobile development.
-  - Initializes database tables (SQLite in local dev).
+  - Initializes PostgreSQL + PostGIS database tables (via SQLAlchemy).
   - Registers all API route modules (routers).
   - Exposes the root (/) and delegates /api/* routes to dedicated routers.
 
@@ -33,7 +33,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
 
 # Import route modules
-from app.routes import health_router, auth_router
+from app.routes import health_router, auth_router, db_health_router
 
 
 @asynccontextmanager
@@ -122,6 +122,9 @@ app.include_router(health_router)
 
 # Authentication: POST /api/auth/register, POST /api/auth/login
 app.include_router(auth_router)
+
+# Database health: GET /api/db-health
+app.include_router(db_health_router)
 
 
 # ---------------------------------------------------------------------------
