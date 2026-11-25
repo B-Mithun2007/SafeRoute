@@ -1,54 +1,63 @@
 /**
- * SafeRoute-AI Color Palette
- * Primary: Deep purple, vibrant violet, and crisp white.
- * Safety indicators: Emerald green (safe), Amber (moderate), Coral red (high risk).
+ * SafeRoute Design System — Color Palette
+ * Modern visual identity: Deep Navy, Ocean Blue, Electric Teal, and Calibrated Safety Tints.
+ * High contrast, WCAG 2.1 AA accessible, production grade.
  */
 export const Colors = {
-  // Primary brand palette
-  primary: '#7928CA',           // Vibrant violet
-  primaryDark: '#1A0B2E',       // Deep midnight purple (brand backdrop)
-  primaryLight: '#9D4EDD',      // Light violet accent
-  primaryGradientStart: '#2D124D',
-  primaryGradientEnd: '#7928CA',
-  accent: '#C77DFF',            // Lavender highlight
-  accentLight: '#F3E8FF',       // Soft violet tinted surface
-  surfaceMuted: '#FAF5FF',      // Very soft purple-white
+  // Primary brand palette (Deep Navy & Ocean Slate)
+  primary: '#0F172A',           // Slate 900 (Authoritative, high-trust primary)
+  primaryDark: '#020617',       // Slate 950 (Midnight backdrop)
+  primaryLight: '#1E293B',      // Slate 800 (Card headers, active surfaces)
+  primaryGradientStart: '#0F172A',
+  primaryGradientEnd: '#1E293B',
 
-  // Neutral palette
+  // Interactive Accent (Electric Teal / Cyan for active controls and routes)
+  accent: '#0D9488',            // Teal 600 (Actionable, distinctive, safe)
+  accentHover: '#0F766E',       // Teal 700
+  accentLight: '#F0FDFA',       // Teal 50 (Soft tinted surfaces)
+  accentBorder: '#99F6E4',      // Teal 200
+  surfaceMuted: '#F8FAFC',      // Slate 50 (App background)
+
+  // Secondary brand accent (Precision Blue)
+  brandBlue: '#0284C7',         // Sky 600
+  brandBlueLight: '#E0F2FE',    // Sky 100
+  brandBlueBorder: '#BAE6FD',   // Sky 200
+
+  // Neutral palette (Slate Scale)
   white: '#FFFFFF',
-  black: '#0F0919',
-  gray50: '#F9FAFB',
-  gray100: '#F3F4F6',
-  gray200: '#E5E7EB',
-  gray300: '#D1D5DB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray600: '#4B5563',
-  gray700: '#374151',
-  gray800: '#1F2937',
-  gray900: '#111827',
+  black: '#020617',
+  gray50: '#F8FAFC',
+  gray100: '#F1F5F9',
+  gray200: '#E2E8F0',
+  gray300: '#CBD5E1',
+  gray400: '#94A3B8',
+  gray500: '#64748B',
+  gray600: '#475569',
+  gray700: '#334155',
+  gray800: '#1E293B',
+  gray900: '#0F172A',
 
   // Safety & Indicator colors
-  safetyGreen: '#10B981',       // Safe / Low risk
+  safetyGreen: '#059669',       // Emerald 600 (Safe / Low risk)
   safetyGreenBg: '#ECFDF5',
   safetyGreenBorder: '#A7F3D0',
 
-  safetyYellow: '#F59E0B',      // Moderate risk / Caution
+  safetyYellow: '#D97706',      // Amber 600 (Moderate risk / Caution)
   safetyYellowBg: '#FFFBEB',
   safetyYellowBorder: '#FDE68A',
 
-  safetyRed: '#EF4444',         // High risk / Hazard / Emergency
+  safetyRed: '#DC2626',         // Red 600 (High risk / Hazard)
   safetyRedBg: '#FEF2F2',
   safetyRedBorder: '#FECACA',
-  sosRed: '#DC2626',            // SOS Emergency button
+  sosRed: '#B91C1C',            // Red 700 (SOS Critical trigger)
 
   // Status & helper colors
-  info: '#3B82F6',
+  info: '#2563EB',
   infoBg: '#EFF6FF',
-  overlayDark: 'rgba(26, 11, 46, 0.75)',
-  overlayCard: 'rgba(255, 255, 255, 0.94)',
-  shadowColor: '#1A0B2E',
-  divider: '#E9D5FF',
+  overlayDark: 'rgba(15, 23, 42, 0.75)',
+  overlayCard: 'rgba(255, 255, 255, 0.96)',
+  shadowColor: '#0F172A',
+  divider: '#E2E8F0',
 };
 
 export default Colors;

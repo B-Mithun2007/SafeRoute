@@ -1,6 +1,6 @@
 /**
  * CustomButton Component
- * Supports primary violet, secondary, outline, danger/SOS, and icon variants.
+ * Modernized with sleek rounded styling, accessible focus states, and refined elevation.
  */
 import React from 'react';
 import {
@@ -14,11 +14,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../constants/colors';
+import { Typography, BorderRadius, Shadows } from '../constants/typography';
 
 interface CustomButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost' | 'teal';
   size?: 'small' | 'medium' | 'large';
   isLoading?: boolean;
   disabled?: boolean;
@@ -48,29 +49,35 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
           text: { color: Colors.white },
           spinner: Colors.white,
         };
+      case 'teal':
+        return {
+          button: { backgroundColor: Colors.accent },
+          text: { color: Colors.white },
+          spinner: Colors.white,
+        };
       case 'secondary':
         return {
-          button: { backgroundColor: Colors.accentLight },
-          text: { color: Colors.primary },
-          spinner: Colors.primary,
+          button: { backgroundColor: Colors.gray100, borderWidth: 1, borderColor: Colors.gray200 },
+          text: { color: Colors.gray800 },
+          spinner: Colors.gray800,
         };
       case 'outline':
         return {
-          button: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: Colors.primary },
-          text: { color: Colors.primary },
-          spinner: Colors.primary,
+          button: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: Colors.gray300 },
+          text: { color: Colors.gray800 },
+          spinner: Colors.gray800,
         };
       case 'danger':
         return {
-          button: { backgroundColor: Colors.sosRed },
+          button: { backgroundColor: Colors.safetyRed },
           text: { color: Colors.white },
           spinner: Colors.white,
         };
       case 'ghost':
         return {
           button: { backgroundColor: 'transparent' },
-          text: { color: Colors.primary },
-          spinner: Colors.primary,
+          text: { color: Colors.gray700 },
+          spinner: Colors.gray700,
         };
     }
   };
@@ -80,11 +87,27 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
   const getSizeStyles = () => {
     switch (size) {
       case 'small':
-        return { paddingVertical: 8, paddingHorizontal: 14, fontSize: 13, iconSize: 16 };
+        return {
+          paddingVertical: 7,
+          paddingHorizontal: 12,
+          fontSize: 12,
+          iconSize: 15,
+        };
       case 'large':
-        return { paddingVertical: 16, paddingHorizontal: 24, fontSize: 17, iconSize: 22 };
+        return {
+          paddingVertical: 14,
+          paddingHorizontal: 20,
+          fontSize: 15,
+          iconSize: 19,
+        };
+      case 'medium':
       default:
-        return { paddingVertical: 12, paddingHorizontal: 20, fontSize: 15, iconSize: 18 };
+        return {
+          paddingVertical: 10,
+          paddingHorizontal: 16,
+          fontSize: 14,
+          iconSize: 17,
+        };
     }
   };
 
@@ -92,7 +115,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
 
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
+      activeOpacity={0.85}
       onPress={onPress}
       disabled={disabled || isLoading}
       style={[
@@ -101,26 +124,27 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
         {
           paddingVertical: currentSize.paddingVertical,
           paddingHorizontal: currentSize.paddingHorizontal,
-          opacity: disabled ? 0.6 : 1,
         },
+        variant === 'primary' && Shadows.subtle,
+        disabled && styles.disabledButton,
         style,
       ]}
     >
       {isLoading ? (
-        <ActivityIndicator color={currentVariant.spinner} size="small" />
+        <ActivityIndicator size="small" color={currentVariant.spinner} />
       ) : (
-        <View style={styles.contentContainer}>
+        <View style={styles.contentRow}>
           {iconName && iconPosition === 'left' && (
             <Ionicons
               name={iconName}
               size={currentSize.iconSize}
               color={currentVariant.text.color}
-              style={styles.leftIcon}
+              style={{ marginRight: 6 }}
             />
           )}
           <Text
             style={[
-              styles.baseText,
+              Typography.button,
               currentVariant.text,
               { fontSize: currentSize.fontSize },
               textStyle,
@@ -133,7 +157,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
               name={iconName}
               size={currentSize.iconSize}
               color={currentVariant.text.color}
-              style={styles.rightIcon}
+              style={{ marginLeft: 6 }}
             />
           )}
         </View>
@@ -144,29 +168,18 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
 
 const styles = StyleSheet.create({
   baseButton: {
-    borderRadius: 14,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    flexDirection: 'row',
   },
-  contentContainer: {
+  contentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  baseText: {
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  leftIcon: {
-    marginRight: 8,
-  },
-  rightIcon: {
-    marginLeft: 8,
+  disabledButton: {
+    opacity: 0.5,
   },
 });
 

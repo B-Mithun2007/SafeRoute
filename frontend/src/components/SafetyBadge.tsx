@@ -6,6 +6,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../constants/colors';
+import { BorderRadius } from '../constants/typography';
 import { RiskLevel } from '../types/route';
 
 interface SafetyBadgeProps {
@@ -71,17 +72,17 @@ export const SafetyBadge: React.FC<SafetyBadgeProps> = ({
         {
           backgroundColor: config.bg,
           borderColor: config.border,
-          paddingVertical: isSmall ? 3 : isLarge ? 8 : 5,
-          paddingHorizontal: isSmall ? 8 : isLarge ? 14 : 10,
+          paddingVertical: isSmall ? 3 : isLarge ? 6 : 4,
+          paddingHorizontal: isSmall ? 8 : isLarge ? 12 : 10,
         },
       ]}
     >
       {showIcon && (
         <Ionicons
           name={config.icon}
-          size={isSmall ? 12 : isLarge ? 18 : 14}
+          size={isSmall ? 11 : isLarge ? 15 : 13}
           color={config.text}
-          style={styles.icon}
+          style={{ marginRight: 4 }}
         />
       )}
       <Text
@@ -89,8 +90,7 @@ export const SafetyBadge: React.FC<SafetyBadgeProps> = ({
           styles.text,
           {
             color: config.text,
-            fontSize: isSmall ? 11 : isLarge ? 15 : 12,
-            fontWeight: isLarge ? '700' : '600',
+            fontSize: isSmall ? 10 : isLarge ? 13 : 11,
           },
         ]}
       >
@@ -105,14 +105,12 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: BorderRadius.full,
     borderWidth: 1,
     alignSelf: 'flex-start',
   },
-  icon: {
-    marginRight: 4,
-  },
   text: {
+    fontWeight: '700',
     letterSpacing: 0.2,
   },
 });

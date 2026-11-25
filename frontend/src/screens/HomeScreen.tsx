@@ -1,7 +1,11 @@
 /**
- * HomeScreen
- * Central dashboard with location search inputs, SOS quick trigger, recent destinations,
- * nearby safety incident highlights, and personal safety tips.
+ * HomeScreen (Command Center Dashboard)
+ * Substantially restructured into an asymmetric executive safety deck:
+ * 1. Command Hero Header with live GPS lock and fast SOS trigger
+ * 2. Journey Orchestrator Card with glowing origin/destination pills
+ * 3. Urban Safety Radar Grid with real-time zone telemetry
+ * 4. Verified Safe Corridors Carousel
+ * 5. Live Community Threat Watch Stream
  */
 import React, { useState, useEffect } from 'react';
 import {
@@ -12,9 +16,11 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Colors from '../constants/colors';
+import Theme from '../constants/theme';
+import AtmosphericBackground from '../components/AtmosphericBackground';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
 import SafetyBadge from '../components/SafetyBadge';
@@ -25,12 +31,16 @@ import { IncidentReport } from '../types/incident';
 import { LocationPoint } from '../types/route';
 
 export const HomeScreen = ({ navigation }: any) => {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
+  const isTablet = width >= 768 && width < 1024;
+
   const { user } = useAuth();
   const { currentLocation, currentAddress, refreshLocation, isLoadingLocation } = useLocation();
 
   const [origin, setOrigin] = useState<LocationPoint>({
-    name: 'Current Location',
-    address: currentAddress || 'Your Current GPS Position',
+    name: 'Current Position',
+    address: currentAddress || 'Acquiring GPS fix...',
     coordinates: currentLocation || { latitude: 37.7749, longitude: -122.4194 },
   });
 
@@ -41,7 +51,7 @@ export const HomeScreen = ({ navigation }: any) => {
   useEffect(() => {
     if (currentLocation) {
       setOrigin({
-        name: 'Current Location',
+        name: 'Current Position',
         address: currentAddress,
         coordinates: currentLocation,
       });
@@ -67,7 +77,7 @@ export const HomeScreen = ({ navigation }: any) => {
     setIsRefreshing(false);
   };
 
-  const handleFindSaferRoute = () => {
+  const handleLaunchSafeJourney = () => {
     if (!destination) {
       navigation.navigate('LocationSearch', {
         target: 'destination',
@@ -82,7 +92,7 @@ export const HomeScreen = ({ navigation }: any) => {
     });
   };
 
-  const selectRecentDestination = (name: string, address: string, lat: number, lng: number) => {
+  const selectQuickDestination = (name: string, address: string, lat: number, lng: number) => {
     const destPoint: LocationPoint = {
       name,
       address,
@@ -96,504 +106,639 @@ export const HomeScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
-      >
-        {/* Top Header & Profile Bar */}
-        <View style={styles.topBar}>
-          <View>
-            <Text style={styles.greetingText}>Hello, {user?.name?.split(' ')[0] || 'Traveler'} 👋</Text>
-            <View style={styles.locationSubRow}>
-              <Ionicons name="location-sharp" size={14} color={Colors.primary} />
-              <Text style={styles.locationSubText} numberOfLines={1}>
-                {currentAddress || 'Locating GPS...'}
+    <AtmosphericBackground variant="canvas">
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            isDesktop && styles.desktopScrollContent,
+          ]}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={Theme.colors.teal} />
+          }
+        >
+          {/* Top Command Header */}
+          <View style={styles.headerDeck}>
+            <View style={styles.headerLeft}>
+              <View style={styles.telemetryTag}>
+                <View style={styles.gpsPulse} />
+                <Text style={styles.telemetryTagText}>VERIFIED SATELLITE FIX</Text>
+              </View>
+              <Text style={styles.heroGreeting}>
+                Welcome back, {user?.name?.split(' ')[0] || 'Traveler'}
+              </Text>
+              <Text style={styles.heroLocation} numberOfLines={1}>
+                {isLoadingLocation ? 'Synchronizing coordinates...' : currentAddress || 'San Francisco Metropolitan Area'}
               </Text>
             </View>
-          </View>
 
-          {/* SOS Quick Button in Header */}
-          <TouchableOpacity
-            style={styles.sosQuickBadge}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('SOS')}
-          >
-            <Ionicons name="alert" size={16} color={Colors.white} />
-            <Text style={styles.sosQuickText}>SOS</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Live Safety Status Banner */}
-        <View style={styles.safetyStatusCard}>
-          <View style={styles.statusLeft}>
-            <Text style={styles.statusTitle}>Current Zone Rating</Text>
-            <Text style={styles.statusSubtitle}>Well-monitored arterial street with high foot traffic</Text>
-          </View>
-          <SafetyBadge score={88} riskLevel="LOW_RISK" size="large" />
-        </View>
-
-        {/* Route Planner Card */}
-        <View style={styles.plannerCard}>
-          <Text style={styles.plannerTitle}>Where are you heading?</Text>
-
-          {/* Origin Field */}
-          <TouchableOpacity
-            style={styles.inputBox}
-            activeOpacity={0.8}
-            onPress={() =>
-              navigation.navigate('LocationSearch', {
-                target: 'origin',
-                currentOrigin: origin,
-                currentDestination: destination || undefined,
-              })
-            }
-          >
-            <View style={styles.originIconCircle}>
-              <View style={styles.originInnerDot} />
-            </View>
-            <View style={styles.inputTexts}>
-              <Text style={styles.inputLabel}>Starting Location</Text>
-              <Text style={styles.inputVal} numberOfLines={1}>
-                {origin.name}
-              </Text>
-            </View>
-            <Ionicons name="navigate-outline" size={18} color={Colors.primary} />
-          </TouchableOpacity>
-
-          {/* Vertical Connecting Dots */}
-          <View style={styles.connectDotsRow}>
-            <View style={styles.connectingDot} />
-            <View style={styles.connectingDot} />
-          </View>
-
-          {/* Destination Field */}
-          <TouchableOpacity
-            style={[styles.inputBox, styles.destInputBox]}
-            activeOpacity={0.8}
-            onPress={() =>
-              navigation.navigate('LocationSearch', {
-                target: 'destination',
-                currentOrigin: origin,
-                currentDestination: destination || undefined,
-              })
-            }
-          >
-            <Ionicons name="location" size={20} color={Colors.sosRed} style={{ marginRight: 10 }} />
-            <View style={styles.inputTexts}>
-              <Text style={styles.inputLabel}>Destination</Text>
-              <Text
-                style={[styles.inputVal, !destination && { color: Colors.gray400 }]}
-                numberOfLines={1}
+            {/* Header Telemetry Quick Actions */}
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={[styles.sosHeaderPill, Theme.shadows.glowSOS]}
+                onPress={() => navigation.navigate('SOS')}
+                activeOpacity={0.85}
               >
-                {destination ? destination.name : 'Enter safe destination'}
-              </Text>
-            </View>
-            <Ionicons name="search" size={18} color={Colors.gray400} />
-          </TouchableOpacity>
-
-          <CustomButton
-            title="Find Safer Route"
-            onPress={handleFindSaferRoute}
-            iconName="shield-checkmark"
-            size="large"
-            style={styles.findButton}
-          />
-        </View>
-
-        {/* Quick Travel Shortcuts / Recent Destinations */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Safe Destinations</Text>
-        </View>
-
-        <View style={styles.recentCardsRow}>
-          <TouchableOpacity
-            style={styles.recentCard}
-            onPress={() =>
-              selectRecentDestination(
-                'University Campus Library',
-                '700 Library Way, Downtown',
-                37.7812,
-                -122.411
-              )
-            }
-          >
-            <View style={styles.recentIconBox}>
-              <Ionicons name="school-outline" size={20} color={Colors.primary} />
-            </View>
-            <Text style={styles.recentTitle}>University Library</Text>
-            <Text style={styles.recentScore}>Safety 92/100</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.recentCard}
-            onPress={() =>
-              selectRecentDestination(
-                'Central Metro Station',
-                'Market St & 5th Avenue',
-                37.7834,
-                -122.408
-              )
-            }
-          >
-            <View style={styles.recentIconBox}>
-              <Ionicons name="train-outline" size={20} color={Colors.primary} />
-            </View>
-            <Text style={styles.recentTitle}>Metro Station</Text>
-            <Text style={styles.recentScore}>Safety 85/100</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.recentCard}
-            onPress={() =>
-              selectRecentDestination(
-                'Financial Center Plaza',
-                '100 Pine Street',
-                37.7925,
-                -122.399
-              )
-            }
-          >
-            <View style={styles.recentIconBox}>
-              <Ionicons name="briefcase-outline" size={20} color={Colors.primary} />
-            </View>
-            <Text style={styles.recentTitle}>Tech Office Park</Text>
-            <Text style={styles.recentScore}>Safety 89/100</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Nearby Incident Reports Section */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
-            <Text style={styles.sectionTitle}>Community Safety Watch</Text>
-            <View style={styles.liveIndicator}>
-              <View style={styles.livePulse} />
-              <Text style={styles.liveText}>Live</Text>
+                <Ionicons name="alert" size={16} color="#FFFFFF" />
+                <Text style={styles.sosHeaderPillText}>SOS</Text>
+              </TouchableOpacity>
             </View>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('ReportsTab')}>
-            <Text style={styles.seeAllText}>View All</Text>
-          </TouchableOpacity>
-        </View>
 
-        {nearbyIncidents.length > 0 ? (
-          nearbyIncidents.map((inc) => (
-            <IncidentCard
-              key={inc.id}
-              incident={inc}
-              onPress={() => navigation.navigate('SafetyTab')}
-            />
-          ))
-        ) : (
-          <View style={styles.emptyIncidentsCard}>
-            <Ionicons name="shield-checkmark-outline" size={28} color={Colors.safetyGreen} />
-            <Text style={styles.emptyIncidentsText}>
-              No critical safety hazards reported nearby in the past 24 hours.
-            </Text>
-          </View>
-        )}
+          {/* Asymmetric 2-Column Deck for Desktop / Stacked for Mobile */}
+          <View style={[styles.deckGrid, isDesktop && styles.desktopDeckGrid]}>
 
-        {/* Daily Safety Advisory Tip */}
-        <View style={styles.tipCard}>
-          <View style={styles.tipIconCircle}>
-            <Ionicons name="bulb-outline" size={20} color={Colors.primary} />
+            {/* Left / Primary Column: Journey Orchestrator Card */}
+            <View style={[styles.primaryColumn, isDesktop && styles.desktopPrimaryCol]}>
+              <View style={[styles.orchestratorCard, Theme.shadows.card]}>
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.cardHeaderIcon}>
+                    <Ionicons name="compass" size={18} color={Theme.colors.teal} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardHeaderTitle}>Route Command Center</Text>
+                    <Text style={styles.cardHeaderSub}>Evaluate real-time pedestrian safety ratings</Text>
+                  </View>
+                </View>
+
+                {/* Origin Location Pill */}
+                <TouchableOpacity
+                  style={styles.locationPill}
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    navigation.navigate('LocationSearch', {
+                      target: 'origin',
+                      currentOrigin: origin,
+                      currentDestination: destination || undefined,
+                    })
+                  }
+                >
+                  <View style={styles.originBeacon}>
+                    <View style={styles.originBeaconCore} />
+                  </View>
+                  <View style={styles.locationTexts}>
+                    <Text style={styles.locationLabel}>ORIGIN DEPARTURE</Text>
+                    <Text style={styles.locationValue} numberOfLines={1}>
+                      {origin.name}
+                    </Text>
+                  </View>
+                  <Ionicons name="navigate-circle" size={18} color={Theme.colors.teal} />
+                </TouchableOpacity>
+
+                {/* Glowing Flow Connector */}
+                <View style={styles.flowConnector}>
+                  <View style={styles.connectorLine} />
+                  <Ionicons name="arrow-down-circle" size={14} color={Theme.colors.textMuted} />
+                  <View style={styles.connectorLine} />
+                </View>
+
+                {/* Destination Location Pill */}
+                <TouchableOpacity
+                  style={[styles.locationPill, styles.destLocationPill]}
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    navigation.navigate('LocationSearch', {
+                      target: 'destination',
+                      currentOrigin: origin,
+                      currentDestination: destination || undefined,
+                    })
+                  }
+                >
+                  <View style={styles.destBeacon}>
+                    <Ionicons name="location" size={14} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.locationTexts}>
+                    <Text style={styles.locationLabel}>SECURE DESTINATION</Text>
+                    <Text
+                      style={[styles.locationValue, !destination && { color: Theme.colors.textMuted }]}
+                      numberOfLines={1}
+                    >
+                      {destination ? destination.name : 'Enter target address or landmark...'}
+                    </Text>
+                  </View>
+                  <Ionicons name="search" size={16} color={Theme.colors.textMuted} />
+                </TouchableOpacity>
+
+                {/* Action CTA */}
+                <CustomButton
+                  title="Launch Safe Journey Evaluation"
+                  onPress={handleLaunchSafeJourney}
+                  iconName="shield-checkmark"
+                  size="large"
+                  variant="teal"
+                  style={styles.launchBtn}
+                />
+              </View>
+
+              {/* Verified Safe Corridors */}
+              <View style={styles.corridorsHeaderRow}>
+                <Text style={styles.sectionHeaderTitle}>Verified Pedestrian Corridors</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('SafetyTab')}>
+                  <Text style={styles.sectionLink}>View All</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.corridorsRow}>
+                <TouchableOpacity
+                  style={[styles.corridorCard, Theme.shadows.soft]}
+                  onPress={() =>
+                    selectQuickDestination(
+                      'University Campus Library',
+                      '700 Library Way, Downtown',
+                      37.7812,
+                      -122.411
+                    )
+                  }
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.corridorIcon}>
+                    <Ionicons name="school" size={18} color={Theme.colors.teal} />
+                  </View>
+                  <Text style={styles.corridorTitle} numberOfLines={1}>Univ Library</Text>
+                  <View style={styles.corridorRating}>
+                    <Ionicons name="shield-checkmark" size={11} color={Theme.colors.emerald} />
+                    <Text style={styles.corridorRatingText}>92% Safe</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.corridorCard, Theme.shadows.soft]}
+                  onPress={() =>
+                    selectQuickDestination(
+                      'Central Metro Station',
+                      'Market St & 5th Avenue',
+                      37.7834,
+                      -122.408
+                    )
+                  }
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.corridorIcon}>
+                    <Ionicons name="subway" size={18} color={Theme.colors.cyan} />
+                  </View>
+                  <Text style={styles.corridorTitle} numberOfLines={1}>Central Metro</Text>
+                  <View style={styles.corridorRating}>
+                    <Ionicons name="shield-checkmark" size={11} color={Theme.colors.emerald} />
+                    <Text style={styles.corridorRatingText}>85% Safe</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.corridorCard, Theme.shadows.soft]}
+                  onPress={() =>
+                    selectQuickDestination(
+                      'Financial Center Plaza',
+                      '100 Pine Street',
+                      37.7925,
+                      -122.399
+                    )
+                  }
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.corridorIcon}>
+                    <Ionicons name="business" size={18} color={Theme.colors.obsidian} />
+                  </View>
+                  <Text style={styles.corridorTitle} numberOfLines={1}>Tech Plaza</Text>
+                  <View style={styles.corridorRating}>
+                    <Ionicons name="shield-checkmark" size={11} color={Theme.colors.emerald} />
+                    <Text style={styles.corridorRatingText}>89% Safe</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Right / Secondary Column: Telemetry & Threat Radar */}
+            <View style={[styles.secondaryColumn, isDesktop && styles.desktopSecondaryCol]}>
+              {/* Telemetry Radar Card */}
+              <View style={[styles.radarCard, Theme.shadows.card]}>
+                <View style={styles.radarHeader}>
+                  <View style={styles.radarPill}>
+                    <Text style={styles.radarPillText}>ZONE RATING</Text>
+                  </View>
+                  <SafetyBadge score={88} riskLevel="LOW_RISK" size="medium" />
+                </View>
+                <Text style={styles.radarTitle}>Optimal Pedestrian Area</Text>
+                <Text style={styles.radarDesc}>
+                  Continuous street lighting coverage (94%), high commercial foot traffic density, active municipal surveillance.
+                </Text>
+
+                {/* Metric Telemetry Bars */}
+                <View style={styles.telemetryBars}>
+                  <View style={styles.telemetryBarItem}>
+                    <Text style={styles.telemetryBarLabel}>Illumination</Text>
+                    <View style={styles.barTrack}>
+                      <View style={[styles.barFill, { width: '94%', backgroundColor: Theme.colors.amber }]} />
+                    </View>
+                  </View>
+                  <View style={styles.telemetryBarItem}>
+                    <Text style={styles.telemetryBarLabel}>Activity Density</Text>
+                    <View style={styles.barTrack}>
+                      <View style={[styles.barFill, { width: '82%', backgroundColor: Theme.colors.teal }]} />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Live Threat Watch Feed */}
+              <View style={styles.corridorsHeaderRow}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={styles.sectionHeaderTitle}>Community Hazard Radar</Text>
+                  <View style={styles.liveIndicator}>
+                    <View style={styles.livePulseRed} />
+                    <Text style={styles.liveIndicatorText}>LIVE</Text>
+                  </View>
+                </View>
+                <TouchableOpacity onPress={() => navigation.navigate('ReportsTab')}>
+                  <Text style={styles.sectionLink}>Report</Text>
+                </TouchableOpacity>
+              </View>
+
+              {nearbyIncidents.length > 0 ? (
+                nearbyIncidents.map((inc) => (
+                  <IncidentCard
+                    key={inc.id}
+                    incident={inc}
+                    onPress={() => navigation.navigate('SafetyTab')}
+                  />
+                ))
+              ) : (
+                <View style={[styles.allClearCard, Theme.shadows.soft]}>
+                  <View style={styles.allClearIconCircle}>
+                    <Ionicons name="shield-checkmark" size={24} color={Theme.colors.emerald} />
+                  </View>
+                  <Text style={styles.allClearTitle}>No Active Hazards Reported</Text>
+                  <Text style={styles.allClearSub}>
+                    Nearby perimeter is clear. Report any dim lighting or concerns to protect others.
+                  </Text>
+                </View>
+              )}
+            </View>
+
           </View>
-          <View style={styles.tipTexts}>
-            <Text style={styles.tipHeader}>Nighttime Travel Advisory</Text>
-            <Text style={styles.tipBody}>
-              When walking after 9 PM, enable "Prefer Well-Lit Roads" in your travel preferences to stay on monitored pedestrian corridors.
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </AtmosphericBackground>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.surfaceMuted,
   },
   scrollContent: {
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 32,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 80,
   },
-  topBar: {
+  desktopScrollContent: {
+    paddingHorizontal: 36,
+    paddingTop: 28,
+  },
+  headerDeck: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    alignItems: 'flex-start',
+    marginBottom: 24,
   },
-  greetingText: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.gray900,
-  },
-  locationSubRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 3,
-  },
-  locationSubText: {
-    fontSize: 12,
-    color: Colors.gray600,
-    marginLeft: 4,
-    maxWidth: 220,
-  },
-  sosQuickBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.sosRed,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    shadowColor: Colors.sosRed,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  sosQuickText: {
-    color: Colors.white,
-    fontWeight: '800',
-    fontSize: 13,
-    marginLeft: 4,
-  },
-  safetyStatusCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    shadowColor: Colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  statusLeft: {
+  headerLeft: {
     flex: 1,
-    marginRight: 10,
+    marginRight: 16,
   },
-  statusTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.gray900,
-  },
-  statusSubtitle: {
-    fontSize: 12,
-    color: Colors.gray500,
-    marginTop: 2,
-    lineHeight: 16,
-  },
-  plannerCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
-    shadowColor: Colors.shadowColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  plannerTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.gray900,
-    marginBottom: 14,
-  },
-  inputBox: {
+  telemetryTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.gray50,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
+    marginBottom: 4,
   },
-  destInputBox: {
-    borderColor: Colors.accentLight,
-    backgroundColor: '#FAF5FF',
-  },
-  originIconCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  originInnerDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primary,
-  },
-  inputTexts: {
-    flex: 1,
-  },
-  inputLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.gray500,
-    textTransform: 'uppercase',
-  },
-  inputVal: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.gray900,
-    marginTop: 1,
-  },
-  connectDotsRow: {
-    paddingLeft: 20,
-    paddingVertical: 4,
-  },
-  connectingDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: Colors.gray300,
-    marginVertical: 2,
-  },
-  findButton: {
-    marginTop: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    marginTop: 6,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.gray900,
-  },
-  liveIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.safetyRedBg,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginLeft: 8,
-  },
-  livePulse: {
+  gpsPulse: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.safetyRed,
-    marginRight: 4,
+    backgroundColor: Theme.colors.emerald,
+    marginRight: 6,
   },
-  liveText: {
-    fontSize: 10,
+  telemetryTagText: {
+    fontSize: 9,
     fontWeight: '700',
-    color: Colors.safetyRed,
+    color: Theme.colors.emerald,
+    letterSpacing: 0.8,
   },
-  seeAllText: {
+  heroGreeting: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: Theme.colors.textPrimary,
+    letterSpacing: -0.6,
+  },
+  heroLocation: {
     fontSize: 13,
-    fontWeight: '600',
-    color: Colors.primary,
+    color: Theme.colors.textMuted,
+    marginTop: 2,
   },
-  recentCardsRow: {
+  headerActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    gap: 8,
-  },
-  recentCard: {
-    flex: 1,
-    backgroundColor: Colors.white,
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
     alignItems: 'center',
   },
-  recentIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: Colors.accentLight,
+  sosHeaderPill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
+    backgroundColor: Theme.colors.crimson,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: Theme.radii.full,
   },
-  recentTitle: {
+  sosHeaderPillText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
     fontSize: 12,
-    fontWeight: '700',
-    color: Colors.gray900,
-    textAlign: 'center',
+    marginLeft: 4,
+    letterSpacing: 0.5,
   },
-  recentScore: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: Colors.safetyGreen,
-    marginTop: 4,
+  deckGrid: {
+    flexDirection: 'column',
+    gap: 24,
   },
-  emptyIncidentsCard: {
-    backgroundColor: Colors.white,
-    padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
+  desktopDeckGrid: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  primaryColumn: {
+    width: '100%',
+  },
+  desktopPrimaryCol: {
+    flex: 1.2,
+  },
+  secondaryColumn: {
+    width: '100%',
+  },
+  desktopSecondaryCol: {
+    flex: 0.8,
+  },
+  orchestratorCard: {
+    backgroundColor: Theme.colors.surfaceLight,
+    borderRadius: Theme.radii.xl,
+    padding: 22,
     borderWidth: 1,
-    borderColor: Colors.gray200,
+    borderColor: Theme.colors.borderLight,
+    marginBottom: 20,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  emptyIncidentsText: {
-    fontSize: 13,
-    color: Colors.gray600,
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 18,
-  },
-  tipCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.accentLight,
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    marginTop: 6,
-  },
-  tipIconCircle: {
+  cardHeaderIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.white,
+    borderRadius: Theme.radii.md,
+    backgroundColor: Theme.colors.tealLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  tipTexts: {
+  cardHeaderTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
+    letterSpacing: -0.2,
+  },
+  cardHeaderSub: {
+    fontSize: 12,
+    color: Theme.colors.textMuted,
+    marginTop: 1,
+  },
+  locationPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.canvas,
+    borderRadius: Theme.radii.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: Theme.colors.borderLight,
+  },
+  destLocationPill: {
+    backgroundColor: Theme.colors.surfaceLight,
+    borderColor: Theme.colors.borderLight,
+  },
+  originBeacon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: Theme.colors.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  originBeaconCore: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Theme.colors.teal,
+  },
+  destBeacon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Theme.colors.crimson,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  locationTexts: {
     flex: 1,
   },
-  tipHeader: {
-    fontSize: 13,
+  locationLabel: {
+    fontSize: 9,
     fontWeight: '700',
-    color: Colors.primaryDark,
-    marginBottom: 2,
+    color: Theme.colors.textMuted,
+    letterSpacing: 0.6,
   },
-  tipBody: {
+  locationValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Theme.colors.textPrimary,
+    marginTop: 2,
+  },
+  flowConnector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 22,
+    paddingVertical: 4,
+  },
+  connectorLine: {
+    width: 2,
+    height: 10,
+    backgroundColor: Theme.colors.borderLight,
+  },
+  launchBtn: {
+    marginTop: 18,
+  },
+  corridorsHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  sectionHeaderTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
+  },
+  sectionLink: {
     fontSize: 12,
-    color: Colors.gray700,
+    fontWeight: '600',
+    color: Theme.colors.teal,
+  },
+  corridorsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  corridorCard: {
+    flex: 1,
+    backgroundColor: Theme.colors.surfaceLight,
+    padding: 14,
+    borderRadius: Theme.radii.lg,
+    borderWidth: 1,
+    borderColor: Theme.colors.borderLight,
+    alignItems: 'center',
+  },
+  corridorIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Theme.colors.canvas,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  corridorTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
+    textAlign: 'center',
+  },
+  corridorRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  corridorRatingText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Theme.colors.emerald,
+    marginLeft: 3,
+  },
+  radarCard: {
+    backgroundColor: Theme.colors.surfaceLight,
+    borderRadius: Theme.radii.xl,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Theme.colors.borderLight,
+    marginBottom: 20,
+  },
+  radarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  radarPill: {
+    backgroundColor: Theme.colors.emeraldBg,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Theme.radii.full,
+    borderWidth: 1,
+    borderColor: Theme.colors.emeraldBorder,
+  },
+  radarPillText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: Theme.colors.emerald,
+    letterSpacing: 0.5,
+  },
+  radarTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
+    marginBottom: 4,
+  },
+  radarDesc: {
+    fontSize: 12,
+    color: Theme.colors.textSecondary,
+    lineHeight: 17,
+    marginBottom: 16,
+  },
+  telemetryBars: {
+    gap: 10,
+  },
+  telemetryBarItem: {
+    width: '100%',
+  },
+  telemetryBarLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Theme.colors.textSecondary,
+    marginBottom: 4,
+  },
+  barTrack: {
+    height: 6,
+    backgroundColor: Theme.colors.canvas,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  liveIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.crimsonBg,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: Theme.radii.full,
+    marginLeft: 8,
+  },
+  livePulseRed: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Theme.colors.crimson,
+    marginRight: 4,
+  },
+  liveIndicatorText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: Theme.colors.crimson,
+  },
+  allClearCard: {
+    backgroundColor: Theme.colors.surfaceLight,
+    padding: 24,
+    borderRadius: Theme.radii.lg,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.borderLight,
+  },
+  allClearIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Theme.colors.emeraldBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  allClearTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
+    marginBottom: 4,
+  },
+  allClearSub: {
+    fontSize: 12,
+    color: Theme.colors.textMuted,
+    textAlign: 'center',
     lineHeight: 16,
   },
 });
