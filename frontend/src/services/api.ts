@@ -32,10 +32,10 @@ apiClient.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response Interceptor: Format standard errors
+// Response Interceptor: Format standard errors and handle session expiration
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
     if (!error.response) {
       // Network connectivity or server down
       return Promise.reject({
@@ -43,11 +43,25 @@ apiClient.interceptors.response.use(
         isNetworkError: true,
       });
     }
+
+    // Auto-clear invalid/expired token on 401 Unauthorized
+    if (error.response.status === 401) {
+      try {
+        await AsyncStorage.multiRemove([
+          Config.STORAGE_KEYS.AUTH_TOKEN,
+          Config.STORAGE_KEYS.USER_PROFILE,
+        ]);
+      } catch {
+        // Non-blocking cleanup
+      }
+    }
+
     const serverMessage = (error.response.data as { detail?: string })?.detail || error.message;
     return Promise.reject({
       status: error.response.status,
       message: serverMessage,
       data: error.response.data,
+      isNetworkError: false,
     });
   }
 );

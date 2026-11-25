@@ -1,6 +1,6 @@
 /**
  * InputField Component
- * Modern input component with label, icons, password reveal toggle, and error states.
+ * Modern input component with clean focus borders, subtle tints, and clear error states.
  */
 import React, { useState } from 'react';
 import {
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../constants/colors';
+import { Typography, BorderRadius } from '../constants/typography';
 
 interface InputFieldProps extends TextInputProps {
   label?: string;
@@ -36,7 +37,7 @@ export const InputField: React.FC<InputFieldProps> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[Typography.captionBold, styles.label]}>{label}</Text>}
       <View
         style={[
           styles.inputWrapper,
@@ -47,7 +48,7 @@ export const InputField: React.FC<InputFieldProps> = ({
         {iconName && (
           <Ionicons
             name={iconName}
-            size={20}
+            size={18}
             color={error ? Colors.safetyRed : isFocused ? Colors.primary : Colors.gray400}
             style={styles.leftIcon}
           />
@@ -57,23 +58,24 @@ export const InputField: React.FC<InputFieldProps> = ({
           secureTextEntry={isPassword && !isPasswordVisible}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          style={styles.textInput}
+          style={[styles.textInput, Typography.body]}
           {...inputProps}
         />
         {isPassword && (
           <TouchableOpacity
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
             style={styles.rightIconButton}
+            activeOpacity={0.7}
           >
             <Ionicons
               name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
-              size={20}
-              color={Colors.gray500}
+              size={18}
+              color={Colors.gray400}
             />
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && <Text style={[Typography.caption, styles.errorText]}>{error}</Text>}
     </View>
   );
 };
@@ -84,9 +86,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.gray700,
+    color: Colors.gray800,
     marginBottom: 6,
   },
   inputWrapper: {
@@ -95,33 +95,33 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderWidth: 1.5,
     borderColor: Colors.gray200,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    height: 52,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: 12,
+    height: 48,
   },
   focusedWrapper: {
     borderColor: Colors.primary,
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: Colors.white,
   },
   errorWrapper: {
     borderColor: Colors.safetyRed,
+    backgroundColor: Colors.safetyRedBg,
   },
   leftIcon: {
-    marginRight: 10,
+    marginRight: 8,
   },
   textInput: {
     flex: 1,
-    fontSize: 15,
+    height: '100%',
     color: Colors.gray900,
+    paddingVertical: 0,
   },
   rightIconButton: {
     padding: 6,
   },
   errorText: {
-    marginTop: 4,
-    fontSize: 12,
     color: Colors.safetyRed,
-    fontWeight: '500',
+    marginTop: 4,
   },
 });
 

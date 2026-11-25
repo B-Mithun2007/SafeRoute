@@ -1,11 +1,12 @@
 /**
  * Header Component
- * Common screen header with back navigation, screen title, and optional right action.
+ * Clean top bar header with back navigation, titles, and action triggers.
  */
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../constants/colors';
+import { Typography, BorderRadius } from '../constants/typography';
 
 interface HeaderProps {
   title: string;
@@ -35,15 +36,15 @@ export const Header: React.FC<HeaderProps> = ({
             onPress={onBackPress}
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={22} color={Colors.gray900} />
+            <Ionicons name="arrow-back" size={20} color={Colors.gray800} />
           </TouchableOpacity>
         )}
         <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[Typography.h2, styles.title]} numberOfLines={1}>
             {title}
           </Text>
           {subtitle && (
-            <Text style={styles.subtitle} numberOfLines={1}>
+            <Text style={[Typography.caption, styles.subtitle]} numberOfLines={1}>
               {subtitle}
             </Text>
           )}
@@ -58,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <Ionicons
             name={rightAction.icon}
-            size={22}
+            size={20}
             color={rightAction.color || Colors.primary}
           />
         </TouchableOpacity>
@@ -72,8 +73,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray200,
@@ -84,9 +85,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
     backgroundColor: Colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
@@ -96,23 +97,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
     color: Colors.gray900,
   },
   subtitle: {
-    fontSize: 12,
     color: Colors.gray500,
-    marginTop: 2,
+    marginTop: 1,
   },
   rightButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: Colors.accentLight,
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 10,
+    marginLeft: 12,
   },
 });
 

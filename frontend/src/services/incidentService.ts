@@ -43,6 +43,8 @@ export const IncidentService = {
     longitude: number;
     severity: IncidentSeverity;
     anonymous: boolean;
+    locationName?: string;
+    photoUri?: string;
   }): Promise<{ success: boolean; report: IncidentReport }> {
     const categoryLabels: Record<IncidentCategory, string> = {
       poor_lighting: 'Poor Street Lighting',
@@ -60,6 +62,7 @@ export const IncidentService = {
       description: reportData.description,
       latitude: reportData.latitude,
       longitude: reportData.longitude,
+      locationName: reportData.locationName || 'Reported Location',
       severity: reportData.severity,
       reportedAt: new Date().toISOString(),
       anonymous: reportData.anonymous,
@@ -69,7 +72,8 @@ export const IncidentService = {
     try {
       await apiClient.post('/api/reports', reportData);
     } catch {
-      // Graceful fallback for mock mode
+      // Graceful fallback: when backend endpoint is not yet available,
+      // the report is preserved in localSubmittedReports so user sees it in the app
     }
 
     // Always keep in local list so user sees their report immediately
