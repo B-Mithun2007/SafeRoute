@@ -3,7 +3,7 @@
  * Root Application Navigation Stack.
  * Coordinates Splash, Onboarding, Authentication, and Main Tab flows with modal overlays.
  */
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from '../screens/SplashScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
@@ -17,43 +17,62 @@ import PreferencesScreen from '../screens/PreferencesScreen';
 import SOSScreen from '../screens/SOSScreen';
 import HeatmapScreen from '../screens/HeatmapScreen';
 import { RootStackParamList } from '../types/navigation';
+import { useAuth } from '../context/AuthContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const AppNavigator = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const hasCompletedInitialBoot = useRef(false);
+
+  useEffect(() => {
+    if (!isLoading) {
+      hasCompletedInitialBoot.current = true;
+    }
+  }, [isLoading]);
+
   return (
     <Stack.Navigator
-      initialRouteName="Splash"
+      initialRouteName={hasCompletedInitialBoot.current ? 'Auth' : 'Splash'}
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
       }}
     >
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="Auth" component={AuthNavigator} />
-      <Stack.Screen name="Main" component={MainTabNavigator} />
+      {isAuthenticated ? (
+        <>
+          {/* Protected Authenticated Screens */}
+          <Stack.Screen name="Main" component={MainTabNavigator} />
 
-      {/* Navigation & Safety Modals */}
-      <Stack.Screen
-        name="LocationSearch"
-        component={LocationSearchScreen}
-        options={{ animation: 'slide_from_bottom' }}
-      />
-      <Stack.Screen name="RouteComparison" component={RouteComparisonScreen} />
-      <Stack.Screen name="MapDetail" component={MapScreen} />
-      <Stack.Screen
-        name="IncidentReport"
-        component={IncidentReportScreen}
-        options={{ animation: 'slide_from_bottom' }}
-      />
-      <Stack.Screen name="Preferences" component={PreferencesScreen} />
-      <Stack.Screen
-        name="SOS"
-        component={SOSScreen}
-        options={{ animation: 'slide_from_bottom' }}
-      />
-      <Stack.Screen name="SafetyHeatmap" component={HeatmapScreen} />
+          {/* Navigation & Safety Modals */}
+          <Stack.Screen
+            name="LocationSearch"
+            component={LocationSearchScreen}
+            options={{ animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen name="RouteComparison" component={RouteComparisonScreen} />
+          <Stack.Screen name="MapDetail" component={MapScreen} />
+          <Stack.Screen
+            name="IncidentReport"
+            component={IncidentReportScreen}
+            options={{ animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen name="Preferences" component={PreferencesScreen} />
+          <Stack.Screen
+            name="SOS"
+            component={SOSScreen}
+            options={{ animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen name="SafetyHeatmap" component={HeatmapScreen} />
+        </>
+      ) : (
+        <>
+          {/* Public Unauthenticated Screens */}
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+          <Stack.Screen name="Auth" component={AuthNavigator} />
+        </>
+      )}
     </Stack.Navigator>
   );
 };

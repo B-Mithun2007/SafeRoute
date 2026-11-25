@@ -54,12 +54,8 @@ export const LoginScreen = ({ navigation }: any) => {
     setErrors({});
     try {
       await login(email.trim(), password);
-      // Navigate to Home/Main tab stack on successful login
-      if (navigation.getParent()) {
-        navigation.getParent().navigate('Main');
-      } else {
-        navigation.navigate('Main');
-      }
+      // AppNavigator automatically switches to the authenticated Main stack
+      // when AuthContext updates isAuthenticated to true.
     } catch (err: any) {
       let errorMessage = 'Login failed. Please verify your credentials or network connection.';
 

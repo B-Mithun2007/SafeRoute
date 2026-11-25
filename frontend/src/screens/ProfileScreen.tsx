@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   Alert,
   Switch,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../constants/colors';
@@ -26,6 +27,13 @@ export const ProfileScreen = ({ navigation }: any) => {
   const [offlineDataCaching, setOfflineDataCaching] = useState(true);
 
   const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm('Are you sure you want to log out of SafeRoute-AI?')) {
+        void logout();
+      }
+      return;
+    }
+
     Alert.alert('Sign Out', 'Are you sure you want to log out of SafeRoute-AI?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -33,7 +41,6 @@ export const ProfileScreen = ({ navigation }: any) => {
         style: 'destructive',
         onPress: async () => {
           await logout();
-          navigation.replace('Auth');
         },
       },
     ]);

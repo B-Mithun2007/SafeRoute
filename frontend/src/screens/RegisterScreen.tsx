@@ -65,12 +65,8 @@ export const RegisterScreen = ({ navigation }: any) => {
     setErrors({});
     try {
       await register(name.trim(), email.trim(), password, phone.trim());
-      // Navigate to Home/Main tab stack on successful registration
-      if (navigation.getParent()) {
-        navigation.getParent().navigate('Main');
-      } else {
-        navigation.navigate('Main');
-      }
+      // AppNavigator automatically switches to the authenticated Main stack
+      // when AuthContext updates isAuthenticated to true.
     } catch (err: any) {
       let errorMessage = 'Registration failed. Please try again.';
 

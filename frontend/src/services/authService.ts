@@ -5,6 +5,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiClient } from './api';
+import { tokenStorage } from './tokenStorage';
 import { Config } from '../constants/config';
 import { User, AuthResponse } from '../types/user';
 
@@ -84,7 +85,7 @@ export const AuthService = {
   async getStoredSession(): Promise<{ user: User | null; token: string | null }> {
     try {
       const [token, userStr] = await Promise.all([
-        AsyncStorage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN),
+        tokenStorage.getToken(),
         AsyncStorage.getItem(Config.STORAGE_KEYS.USER_PROFILE),
       ]);
       const user = userStr ? JSON.parse(userStr) : null;
@@ -98,16 +99,16 @@ export const AuthService = {
    * Log out and clear stored session
    */
   async logout(): Promise<void> {
-    await AsyncStorage.multiRemove([
-      Config.STORAGE_KEYS.AUTH_TOKEN,
-      Config.STORAGE_KEYS.USER_PROFILE,
+    await Promise.all([
+      tokenStorage.removeToken(),
+      AsyncStorage.removeItem(Config.STORAGE_KEYS.USER_PROFILE),
     ]);
   },
 
   async _saveSession(data: AuthResponse): Promise<void> {
     const token = data.token || (data as any).access_token;
     await Promise.all([
-      AsyncStorage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, token),
+      tokenStorage.setToken(token),
       AsyncStorage.setItem(Config.STORAGE_KEYS.USER_PROFILE, JSON.stringify(data.user)),
     ]);
   },

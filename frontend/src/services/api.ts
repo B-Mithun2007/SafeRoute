@@ -3,8 +3,8 @@
  * Configured with dynamic baseURL, timeouts, and error interceptors.
  */
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Config } from '../constants/config';
+import { tokenStorage } from './tokenStorage';
 
 // Create singleton Axios client
 export const apiClient: AxiosInstance = axios.create({
@@ -20,7 +20,7 @@ export const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
-      const token = await AsyncStorage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+      const token = await tokenStorage.getToken();
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
